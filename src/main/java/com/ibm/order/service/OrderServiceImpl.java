@@ -33,28 +33,25 @@ public class OrderServiceImpl implements OrderService {
 	@Override
 	public Order getOrder(String orderNumber) {
 		
-		logger.info("Entered OrderServiceImpl.getOrder().  orderNumber=" + orderNumber);
+		logger.info("Entered OrderServiceImpl.getOrder().  orderNumber = {}", 
+				    orderNumber);
 		
 		Order order = null;
 		
 		order = this.orderRepo.findByOrderNumber(orderNumber);
 		
-		logger.info("Leaving OrderServiceImpl.getOrder().  order=" + order);
+		logger.info("Leaving OrderServiceImpl.getOrder().  order = {}", order);
 		
 		return order;
 	}
 	
 	@Override
 	public List<Order> getOrders() {
+		logger.debug("Entered OrderServiceImpl.getOrders().");
 		
 		List<Order> orders = null;
-		//List<Order> orders = new ArrayList<Order>();
 		
 		orders = this.orderRepo.findAll();
-//		OrderMenuItem omi = new OrderMenuItem("123", 123, "My Menu", 100.00);
-//		List<OrderMenuItem> lOmi = new ArrayList<OrderMenuItem>();
-//		lOmi.add(omi);
-//		orders.add(new Order("cust1", lOmi, 300.00));
 		
 		return orders;
 	}
@@ -62,37 +59,55 @@ public class OrderServiceImpl implements OrderService {
 	@Override
 	public Order addOrder(OrderInput orderInput) {
 		
+		logger.info("Entered OrderServiceImpl.addOrder(). "
+				  + "orderInput = {}", orderInput);
+		
 		Order order = new Order();
 		List<OrderMenuItem> orderMenuItems = new ArrayList<OrderMenuItem>();
 		order.setOrderMenuItems(orderMenuItems);
-		
 		order.setCustomerNumber(orderInput.getCustomerNumber());
+		
 		OrderInputMenuItem orderInputMenuItem = null;
 		OrderMenuItem orderMenuItem = null;
-
 		MenuItem menuItem = null;
-
+		String menuItemNumber = null;
+		int menuItemQuantity = 0;
 		double orderPrice = 0.0;
-		Iterator<OrderInputMenuItem> iter = orderInput.getOrderInputMenuItems().iterator();
+		
+		Iterator<OrderInputMenuItem> iter = 
+				orderInput.getOrderInputMenuItems().iterator();
+		
 		while (iter.hasNext()) {
 			
 			orderInputMenuItem = iter.next();
-			menuItem = this.menuEndpoint.getMenuItem(orderInputMenuItem.getMenuItemNumber());
+			menuItemNumber = orderInputMenuItem.getMenuItemNumber();
+			menuItemQuantity = orderInputMenuItem.getQuantityOfMenuItem();
+			
+			// Get menu item details from Menu service
+			menuItem = this.menuEndpoint.getMenuItem(menuItemNumber);
+			
+			if (menuItem == null) {
+				throw new IllegalArgumentException(
+					"Cannot place order. Invalid menu number " + menuItemNumber);
+			}
 	
 			orderMenuItem = new OrderMenuItem();
-			orderMenuItem.setMenuItemNumber(orderInputMenuItem.getMenuItemNumber());
+			orderMenuItem.setMenuItemNumber(menuItemNumber);
 			orderMenuItem.setMenuName(menuItem.getName());
-			orderMenuItem.setQuantityOfMenuItem(orderInputMenuItem.getQuantityOfMenuItem());
+			orderMenuItem.setQuantityOfMenuItem(menuItemQuantity);
 			orderMenuItem.setPrice(menuItem.getPrice());
 			
 			orderMenuItems.add(orderMenuItem);
 			
-			orderPrice = orderPrice + menuItem.getPrice() * (orderInputMenuItem.getQuantityOfMenuItem());
+			orderPrice = orderPrice + menuItem.getPrice() * (menuItemQuantity);
 		}
 
 		order.setOrderPrice(orderPrice);
 				
 		order.setOrderNumber(orderInput.getOrderNumber());
+		
+		logger.info("In OrderServiceImpl.addOrder(). "
+				  + "Updating the database with order = {}", order);
 		
 		order = this.orderRepo.insert(order);
 		

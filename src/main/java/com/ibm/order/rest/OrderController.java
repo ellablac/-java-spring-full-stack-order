@@ -32,9 +32,13 @@ public class OrderController {
 	// URL: http://ip-address:port/order/order (POST request)
 	@RequestMapping(value = "/order", method = RequestMethod.POST)
 	public ResponseEntity<?> addOrder(@RequestBody OrderInput orderInput) {
+		
+		logger.debug("Entered OrderController.addOrder().  orderInput = {}", orderInput);
 
 		Order order = this.orderService.addOrder(orderInput);
 		ResponseEntity<Order> responseEntity = new ResponseEntity<Order>(order, HttpStatus.OK);
+		
+		logger.info("OrderController.addOrder() Response: {}", responseEntity);
 		return responseEntity;
 	}
 
@@ -42,10 +46,13 @@ public class OrderController {
 	@RequestMapping(value = "/order/{orderNumber}")
 	public ResponseEntity<?> getOrder(@PathVariable(value="orderNumber") String orderNumber) {
 
-		logger.info("Entered OrderController.getOrder().  orderNumber=" + orderNumber);
+		logger.debug("Entered OrderController.getOrder().  orderNumber = {}", orderNumber);
+		
 		Order order = this.orderService.getOrder(orderNumber);
 		logger.debug("OrderController.getOrder().  order=" + order);
 		ResponseEntity<Order> responseEntity = new ResponseEntity<Order>(order, HttpStatus.OK);
+		
+		logger.info("OrderController.getOrder()  Response: {}", responseEntity);
 		return responseEntity;
    }
    
@@ -53,8 +60,14 @@ public class OrderController {
    @RequestMapping(value = "/orders")
    public ResponseEntity<?> getOrders() {
 	   
+	   logger.debug("Entered OrderController.getOrders()");
+	   
 	   List<Order> orders = this.orderService.getOrders();
-	   ResponseEntity<List<Order>> responseEntity = new ResponseEntity<List<Order>>(orders, HttpStatus.OK);
+	   ResponseEntity<List<Order>> responseEntity = 
+			   new ResponseEntity<List<Order>>(orders, HttpStatus.OK);
+	   
+	   logger.info("OrderController.getOrders()  Response: {}", responseEntity);
+	   
 	   return responseEntity;
    }
 }
