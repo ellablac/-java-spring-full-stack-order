@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orderservicedeployment
+spec:
+  selector:
+    matchLabels:
+      app: orderservice
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: orderservice
+    spec:
+      containers:
+      - image: us.icr.io/ellacrnmsp/orderservice:1.0
+        name: orderservice
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9743
+      restartPolicy: Always
+      volumes:
+      - name: ordervolume
+        configMap:
+          name: ordercm
+          items:
+          - key: application.properties 
+            path: application.properties
